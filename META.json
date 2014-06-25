@@ -1,0 +1,51 @@
+{
+   "abstract" : "Encode Perl values in a json-friendly way",
+   "author" : [
+      "Anthony Brummett <brummett@cpan.org>"
+   ],
+   "dynamic_config" : 1,
+   "generated_by" : "Module::Build version 0.3901, CPAN::Meta::Converter version 2.120921",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Data-Transform-ExplicitMetadata",
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "IO::Handle" : "0",
+            "Test::More" : "0"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "Module::Build" : "0.39"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Carp" : "0",
+            "Exporter" : "0",
+            "Scalar::Util" : "0",
+            "Symbol" : "0",
+            "perl" : "v5.8.0"
+         }
+      }
+   },
+   "provides" : {
+      "Data::Transform::ExplicitMetadata" : {
+         "file" : "lib/Data/Transform/ExplicitMetadata.pm",
+         "version" : "0.01"
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ]
+   },
+   "version" : "0.01"
+}
