@@ -4,7 +4,7 @@ use warnings;
 use Data::Transform::ExplicitMetadata qw(encode decode);
 
 use Scalar::Util;
-use Test::More tests => 34;
+use Test::More tests => 35;
 
 test_scalar();
 test_simple_references();
@@ -94,7 +94,6 @@ sub test_filehandle {
             PACKAGE => 'main',
             NAME => 'STDOUT',
             IO => fileno(STDOUT),
-            IOseek => undef,
             SCALAR => {
                 __value => undef,
                 __reftype => 'SCALAR',
@@ -102,6 +101,14 @@ sub test_filehandle {
         },
         __reftype => 'GLOB',
     };
+
+    # different platforms have different values for the seek position of STDOUT
+    # For example, running this test with prove, I get undef on Unix-like systems
+    # and '0 but true' on Windows.  Running the test directly with perl, I get a
+    # large-ish positive number
+    ok(exists $encoded->{__value}->{IOseek}, 'encoded has IOseek key');
+    delete $encoded->{__value}->{IOseek};
+
     is_deeply($encoded, $expected, 'encode bare filehandle');
     is(ref(\$decoded), 'GLOB', 'decoded bare filehandle type');
     is(fileno($decoded), fileno(STDOUT), 'decode bare filehandle fileno');

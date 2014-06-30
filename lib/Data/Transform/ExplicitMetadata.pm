@@ -7,7 +7,7 @@ use Scalar::Util;
 use Symbol;
 use Carp;
 
-our $VERSION = "0.01";
+our $VERSION = "0.02";
 
 use base 'Exporter';
 
@@ -100,6 +100,8 @@ sub encode {
             my($pattern, $modifiers);
             if ($^V ge v5.9.5) {
                 require re;
+            }
+            if (defined &re::regexp_pattern) {
                 ($pattern, $modifiers) = re::regexp_pattern($value);
             } else {
                 $value = "$value";
