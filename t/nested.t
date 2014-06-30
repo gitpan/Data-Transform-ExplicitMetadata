@@ -4,7 +4,7 @@ use warnings;
 use Data::Transform::ExplicitMetadata qw(encode decode);
 
 use Scalar::Util qw(refaddr);
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 test_nested_struct();
 test_nested_with_duplicate_ref();
@@ -59,7 +59,6 @@ sub test_nested_struct {
                             NAME => 'STDOUT',
                             PACKAGE => 'main',
                             IO => fileno(STDOUT),
-                            IOseek => undef,
                             SCALAR => {
                                 __reftype => 'SCALAR',
                                 __value => undef,
@@ -101,6 +100,14 @@ sub test_nested_struct {
     };
 
     my $encoded = encode($original);
+
+    # different platforms have different values for the seek position of STDOUT
+    # For example, running this test with prove, I get undef on Unix-like systems
+    # and '0 but true' on Windows.  Running the test directly with perl, I get a
+    # large-ish positive number
+    ok(exists $encoded->{__value}{array}{__value}[3]{__value}{IOseek}, 'IO slot has IOseek key');
+    delete $encoded->{__value}{array}{__value}[3]{__value}{IOseek};
+
     is_deeply($encoded, $expected, 'encode nested data structure');
 
     my $decoded = decode($encoded);
