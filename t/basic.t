@@ -4,17 +4,12 @@ use warnings;
 use Data::Transform::ExplicitMetadata qw(encode decode);
 
 use Scalar::Util;
-use Test::More tests => 35;
+use File::Temp;
+use Test::More tests => 8;
 
-test_scalar();
-test_simple_references();
-test_filehandle();
-test_coderef();
-test_refref();
-test_regex();
-test_vstring();
+subtest test_scalar => sub {
+    plan tests => 8;
 
-sub test_scalar {
     my $tester = sub {
         my($original, $desc) = @_;
         my $encoded = encode($original);
@@ -27,9 +22,11 @@ sub test_scalar {
     $tester->('a string', 'string');
     $tester->('', 'empty string');
     $tester->(undef, 'undef');
-}
+};
 
-sub test_simple_references {
+subtest test_simple_references => sub {
+    plan tests => 6;
+
     my %tests = (
         scalar => \'a scalar',
         array  => [ 1,2,3 ],
@@ -51,9 +48,14 @@ sub test_simple_references {
         my $decoded = decode($encoded);
         is_deeply($decoded, $original, "decode $test");
     }
-}
+};
 
-sub test_filehandle {
+subtest test_filehandle_no_fmode => sub {
+    plan tests => 8;
+
+    no warnings 'redefine';
+    local $Data::Transform::ExplicitMetadata::HAS_FMODE = '';
+
     open(my $filehandle, __FILE__) || die "Can't open file: $!";
 
     my $encoded = encode($filehandle);
@@ -112,9 +114,30 @@ sub test_filehandle {
     is_deeply($encoded, $expected, 'encode bare filehandle');
     is(ref(\$decoded), 'GLOB', 'decoded bare filehandle type');
     is(fileno($decoded), fileno(STDOUT), 'decode bare filehandle fileno');
-}
+};
 
-sub test_coderef {
+subtest test_filehandle_with_fmode => sub {
+    if (! eval { require FileHandle::Fmode } ) {
+        plan skip_all => 'FileHandle::Fmode is not available';
+    }
+
+    plan tests => 4;
+
+    my $temp_fh = File::Temp->new();
+    $temp_fh->close();
+    my $filename = $temp_fh->filename;
+
+    foreach my $mode (qw( < > >> +<)) {
+        open(my $filehandle, $mode, $filename) || die "Can't open temp file in mode $mode: $!";
+        my $encoded = encode($filehandle);
+        is ($encoded->{__value}->{IOmode}, $mode, "IOMode for mode $mode");
+    }
+};
+
+
+subtest test_coderef => sub {
+    plan tests => 2;
+
     my $original = sub { 1 };
 
     my $encoded = encode($original);
@@ -129,9 +152,11 @@ sub test_coderef {
 
     my $decoded = decode($encoded);
     is(ref($decoded), 'CODE', 'decoded to a coderef');
-}
+};
 
-sub test_refref {
+subtest test_refref => sub {
+    plan tests => 2;
+
     my $hash = { };
     my $original = \$hash;
 
@@ -149,9 +174,11 @@ sub test_refref {
 
     my $decoded = decode($encoded);
     is_deeply($decoded, $original, 'decode ref reference');
-}
+};
 
-sub test_regex {
+subtest test_regex => sub {
+    plan tests => 3;
+
     my $original = qr(a regex \w)m;
 
     my $expected = {
@@ -165,9 +192,11 @@ sub test_regex {
     my $decoded = decode($encoded);
     is("$decoded", "$original", 'decode regex');
     isa_ok($decoded, 'Regexp');
-}
+};
 
-sub test_vstring {
+subtest test_vstring => sub {
+    plan tests => 6;
+
     my $original = v1.2.3.4;
 
     my $expected = {
@@ -195,4 +224,4 @@ sub test_vstring {
     is(ref($decoded),
         $^V ge v5.10.0 ? 'VSTRING' : 'SCALAR',
         'decoded ref');
-}
+};

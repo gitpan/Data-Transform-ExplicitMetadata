@@ -3,27 +3,30 @@ abstract: 'Encode Perl values in a json-friendly way'
 author:
   - 'Anthony Brummett <brummett@cpan.org>'
 build_requires:
-  IO::Handle: 0
-  Test::More: 0
+  File::Temp: '0'
+  IO::Handle: '0'
+  Test::More: '0'
 configure_requires:
-  Module::Build: 0.39
+  Module::Build: '0.40'
 dynamic_config: 1
-generated_by: 'Module::Build version 0.3901, CPAN::Meta::Converter version 2.120921'
+generated_by: 'Module::Build version 0.4003, CPAN::Meta::Converter version 2.141520'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+  version: '1.4'
 name: Data-Transform-ExplicitMetadata
 provides:
   Data::Transform::ExplicitMetadata:
     file: lib/Data/Transform/ExplicitMetadata.pm
-    version: 0.020001
+    version: '0.03'
+recommends:
+  FileHandle::Fmode: '0.14'
 requires:
-  Carp: 0
-  Exporter: 0
-  Scalar::Util: 0
-  Symbol: 0
+  Carp: '0'
+  Exporter: '0'
+  Scalar::Util: '0'
+  Symbol: '0'
   perl: v5.8.0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.020001
+version: '0.03'

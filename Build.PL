@@ -5,6 +5,7 @@ my $build = Module::Build->new(
     dist_author => 'Anthony Brummett <brummett@cpan.org>',
     build_requires => {
         'Test::More'    => 0,
+        'File::Temp'    => 0,
         'IO::Handle'    => 0,
     },
     requires => {
@@ -15,6 +16,9 @@ my $build = Module::Build->new(
         'Scalar::Util'  => 0,
         'Symbol'        => 0,
         'Carp'          => 0,
+    },
+    recommends => {
+        'FileHandle::Fmode' => '0.14',
     },
 );
 $build->create_build_script;
