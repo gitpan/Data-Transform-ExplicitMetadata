@@ -27,9 +27,6 @@
          }
       },
       "runtime" : {
-         "recommends" : {
-            "FileHandle::Fmode" : "0.14"
-         },
          "requires" : {
             "Carp" : "0",
             "Exporter" : "0",
@@ -42,7 +39,7 @@
    "provides" : {
       "Data::Transform::ExplicitMetadata" : {
          "file" : "lib/Data/Transform/ExplicitMetadata.pm",
-         "version" : "0.03"
+         "version" : "0.04"
       }
    },
    "release_status" : "stable",
@@ -51,5 +48,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.03"
+   "version" : "0.04"
 }

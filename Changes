@@ -1,3 +1,10 @@
+17 Aug 2014 - v0.04
+    * Use Fcntl to determine fh open mode instead of FileHandle::Fmode
+    * Fix broken tests
+
+16 Aug 2014 - v0.03
+    * Save and restore the open mode of file handles with FileHandle::Fmode
+
 30 Jun 2014 - v0.02
     * Compatibility with more platforms and Perl versions
 

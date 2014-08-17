@@ -6,39 +6,28 @@ use warnings;
 use Scalar::Util;
 use Symbol;
 use Carp;
+use Fcntl qw(F_GETFL O_WRONLY O_RDWR O_APPEND);
 
-our $VERSION = "0.03";
+our $VERSION = "0.04";
 
 use base 'Exporter';
 
 our @EXPORT_OK = qw( encode decode );
 
-our $HAS_FMODE;
-BEGIN {
-    $HAS_FMODE = eval { require FileHandle::Fmode } || '';
-}
-
 sub _get_open_mode {
     my $fh = shift;
-    if (! FileHandle::Fmode::is_FH($fh)) {
-        return undef;
-    }
 
-    if (FileHandle::Fmode::is_RO($fh)) {
-        return '<';
+    my $flags = eval { no warnings 'uninitialized';
+                       fcntl($fh, F_GETFL, my $junk) };
+    return unless $flags;
 
-    } elsif (FileHandle::Fmode::is_WO($fh)) {
-        if (FileHandle::Fmode::is_A($fh)) {
-            return '>>';
-        } else {
-            return '>';
-        }
-
-    } elsif (FileHandle::Fmode::is_A($fh)) {
-        return '+>>'
-
+    my $is_append = $flags & O_APPEND;
+    if ($flags & O_WRONLY) {
+        return $is_append ? '>>' : '>';
+    } elsif ($flags & O_RDWR) {
+        return $is_append ? '+>>' : '+<';
     } else {
-        return '+<'
+        return '<';
     }
 }
 
@@ -117,7 +106,7 @@ sub encode {
             }
             if (*{$value}{IO}) {
                 if( $tmpvalue{IO} = encode(fileno(*{$value}{IO}), &$_p, $seen) ) {
-                    $tmpvalue{IOmode} = _get_open_mode(*{$value}{IO}) if $HAS_FMODE;
+                    $tmpvalue{IOmode} = _get_open_mode(*{$value}{IO});
                     $tmpvalue{IOseek} = sysseek($value, 0, 1);
                 }
             }
@@ -333,10 +322,10 @@ sub decode {
         $rv = _create_anon_ref_of_type('GLOB', $value->{PACKAGE}, $value->{NAME});
 
         foreach my $type ( keys %$value ) {
-            next if ($type eq 'NAME' or $type eq 'PACKAGE' or $type eq 'IOseek' or $type eq 'IOMode');
+            next if ($type eq 'NAME' or $type eq 'PACKAGE' or $type eq 'IOseek' or $type eq 'IOmode');
             if ($type eq 'IO') {
                 if (my $fileno = $value->{IO}) {
-                    $rv = _recreate_fh($fileno, $value->{IOMode});
+                    $rv = _recreate_fh($fileno, $value->{IOmode});
                 }
             } elsif ($type eq 'CODE') {
                 *{$rv} = \&_dummy_sub unless ($is_real_glob);

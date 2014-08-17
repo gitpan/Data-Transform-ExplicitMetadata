@@ -4,7 +4,7 @@ use warnings;
 use Data::Transform::ExplicitMetadata qw(encode decode);
 
 use Scalar::Util qw(refaddr);
-use Test::More tests => 11;
+use Test::More tests => 12;
 
 test_nested_struct();
 test_nested_with_duplicate_ref();
@@ -107,6 +107,10 @@ sub test_nested_struct {
     # large-ish positive number
     ok(exists $encoded->{__value}{array}{__value}[3]{__value}{IOseek}, 'IO slot has IOseek key');
     delete $encoded->{__value}{array}{__value}[3]{__value}{IOseek};
+
+    my $open_mode = delete $encoded->{__value}{array}{__value}[3]{__value}{IOmode};
+    ok(($open_mode eq '>') || ($open_mode eq '+<'),
+        'IO slot open mode');
 
     is_deeply($encoded, $expected, 'encode nested data structure');
 

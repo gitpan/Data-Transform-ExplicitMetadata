@@ -5,7 +5,7 @@ use Data::Transform::ExplicitMetadata qw(encode decode);
 
 use Scalar::Util;
 use File::Temp;
-use Test::More tests => 8;
+use Test::More tests => 7;
 
 subtest test_scalar => sub {
     plan tests => 8;
@@ -50,84 +50,14 @@ subtest test_simple_references => sub {
     }
 };
 
-subtest test_filehandle_no_fmode => sub {
-    plan tests => 8;
-
-    no warnings 'redefine';
-    local $Data::Transform::ExplicitMetadata::HAS_FMODE = '';
-
-    open(my $filehandle, __FILE__) || die "Can't open file: $!";
-
-    my $encoded = encode($filehandle);
-    my $decoded = decode($encoded);
-
-    ok(delete $encoded->{__value}->{SCALAR}->{__refaddr},
-        'anonymous scalar has __refaddr');
-
-    my $expected = {
-        __value => {
-            PACKAGE => 'main',
-            NAME => '$filehandle',
-            IO => fileno($filehandle),
-            IOseek => '0 but true',
-            SCALAR => {
-                __value => undef,
-                __reftype => 'SCALAR',
-            },
-        },
-        __reftype => 'GLOB',
-        __refaddr => Scalar::Util::refaddr($filehandle),
-    };
-
-    is_deeply($encoded, $expected, 'encode filehandle');
-
-    is(fileno($decoded), fileno($filehandle), 'decode filehandle');
-
-
-    # try with a bare filehandle
-    $encoded = encode(*STDOUT);
-    $decoded = decode($encoded);
-
-    ok(delete $encoded->{__value}->{SCALAR}->{__refaddr},
-        'anonymous scalar has __refaddr');
-
-    $expected = {
-        __value => {
-            PACKAGE => 'main',
-            NAME => 'STDOUT',
-            IO => fileno(STDOUT),
-            SCALAR => {
-                __value => undef,
-                __reftype => 'SCALAR',
-            },
-        },
-        __reftype => 'GLOB',
-    };
-
-    # different platforms have different values for the seek position of STDOUT
-    # For example, running this test with prove, I get undef on Unix-like systems
-    # and '0 but true' on Windows.  Running the test directly with perl, I get a
-    # large-ish positive number
-    ok(exists $encoded->{__value}->{IOseek}, 'encoded has IOseek key');
-    delete $encoded->{__value}->{IOseek};
-
-    is_deeply($encoded, $expected, 'encode bare filehandle');
-    is(ref(\$decoded), 'GLOB', 'decoded bare filehandle type');
-    is(fileno($decoded), fileno(STDOUT), 'decode bare filehandle fileno');
-};
-
 subtest test_filehandle_with_fmode => sub {
-    if (! eval { require FileHandle::Fmode } ) {
-        plan skip_all => 'FileHandle::Fmode is not available';
-    }
-
-    plan tests => 4;
+    plan tests => 5;
 
     my $temp_fh = File::Temp->new();
     $temp_fh->close();
     my $filename = $temp_fh->filename;
 
-    foreach my $mode (qw( < > >> +<)) {
+    foreach my $mode (qw( < > >> +>> +<)) {
         open(my $filehandle, $mode, $filename) || die "Can't open temp file in mode $mode: $!";
         my $encoded = encode($filehandle);
         is ($encoded->{__value}->{IOmode}, $mode, "IOMode for mode $mode");

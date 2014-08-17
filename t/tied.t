@@ -95,6 +95,7 @@ sub test_tied_handle {
             },
             IO => $fileno,
             IOseek => '0 but true',
+            IOmode => '<',
         },
         __value => {
             __reftype => 'SCALAR',
