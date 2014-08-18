@@ -17,5 +17,8 @@ my $build = Module::Build->new(
         'Symbol'        => 0,
         'Carp'          => 0,
     },
+    recommends => {
+        'FileHandle::Fmode' => '0.14',
+    },
 );
 $build->create_build_script;

@@ -5,7 +5,7 @@ use Data::Transform::ExplicitMetadata qw(encode decode);
 
 use Scalar::Util;
 use File::Temp;
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 subtest test_scalar => sub {
     plan tests => 8;
@@ -50,9 +50,13 @@ subtest test_simple_references => sub {
     }
 };
 
-subtest test_filehandle_with_fmode => sub {
+subtest test_filehandle => sub {
     plan tests => 5;
 
+    encode_filehandle_test_open_mode();
+};
+
+sub encode_filehandle_test_open_mode {
     my $temp_fh = File::Temp->new();
     $temp_fh->close();
     my $filename = $temp_fh->filename;
@@ -62,6 +66,20 @@ subtest test_filehandle_with_fmode => sub {
         my $encoded = encode($filehandle);
         is ($encoded->{__value}->{IOmode}, $mode, "IOMode for mode $mode");
     }
+}
+
+subtest test_filehandle_with_fmode => sub {
+    if (eval { require FileHandle::Fmode }) {
+        plan tests => 5;
+    } else {
+        plan skip_all => 'FileHandle::Fmode is not installed';
+    }
+
+    no warnings 'redefine';
+    # make the fcntl function return false so it'll fall back to Fmode
+    local *Data::Transform::ExplicitMetadata::_get_open_mode_fcntl = sub { '' };
+
+    encode_filehandle_test_open_mode();
 };
 
 

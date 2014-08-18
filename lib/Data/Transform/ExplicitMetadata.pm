@@ -8,13 +8,33 @@ use Symbol;
 use Carp;
 use Fcntl qw(F_GETFL O_WRONLY O_RDWR O_APPEND);
 
-our $VERSION = "0.04";
+our $VERSION = "0.04_01";
 
 use base 'Exporter';
 
 our @EXPORT_OK = qw( encode decode );
 
-sub _get_open_mode {
+our $HAS_FMODE;
+BEGIN {
+    $HAS_FMODE = eval { require FileHandle::Fmode } || '';
+}
+
+sub _get_open_mode_filehandle_fmode {
+    my $fh = shift;
+
+    return unless FileHandle::Fmode::is_FH($fh);
+
+    my $is_append = FileHandle::Fmode::is_A($fh);
+    if (FileHandle::Fmode::is_WO($fh)) {
+        return $is_append ? '>>' : '>';
+    } elsif (FileHandle::Fmode::is_RW($fh)) {
+        return $is_append ? '+>>' : '+<';
+    } else {
+        return '<';
+    }
+}
+
+sub _get_open_mode_fcntl {
     my $fh = shift;
 
     my $flags = eval { no warnings 'uninitialized';
@@ -29,6 +49,14 @@ sub _get_open_mode {
     } else {
         return '<';
     }
+}
+
+sub _get_open_mode {
+    my $fh = shift;
+
+    return _get_open_mode_fcntl($fh)
+            ||
+            ($HAS_FMODE && _get_open_mode_filehandle_fmode($fh));
 }
 
 sub encode {
@@ -492,7 +520,7 @@ of the first place this reference was seen in the data structure.
 encode() handles arbitrarily nested data structures, meaning that
 values in the __values slot may also be encoded this way.
 
-=item deocde
+=item decode
 
 Accepts a single value and returns a copy of the data structure originally
 passed to encode().  __refaddr information is discarded and new copies of
@@ -504,9 +532,10 @@ Tied variables are re-tied by localizing the appropriate TIE* method to return
 the tied data.  The variable's original data is filled in before calling tie().
 
 The IO slot of typeglobs is recreated by opening the handle with the same
-descriptor number.  If the module FileHandle::Fmode is available, it will be
-re-opened in the same mode as the original.  Otherwise, it will first try
-re-opening the file descriptor in read mode, then write mode.
+descriptor number and open mode.  It will first try fcntl() with F_GETFL
+to determine the open mode, falling back to using FileHandle::Fmode if it's
+available.  Finally, it will first try re-opening the file descriptor in
+read mode, then write mode.
 
 Coderefs cannot be decoded properly.  They are recreated by returning a
 reference to a dummy sub that returns a message explaning the situation.

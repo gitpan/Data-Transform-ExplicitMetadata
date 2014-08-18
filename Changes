@@ -1,3 +1,6 @@
+18 Aug 2014 - v0.04_01
+    * Attempt to guess the open mode properly on Win32 when fcntl() fails
+
 17 Aug 2014 - v0.04
     * Use Fcntl to determine fh open mode instead of FileHandle::Fmode
     * Fix broken tests
