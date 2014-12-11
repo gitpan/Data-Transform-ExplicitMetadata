@@ -1,4 +1,4 @@
-18 Aug 2014 - v0.04_01
+11 Dec 2014 - v0.05
     * Attempt to guess the open mode properly on Win32 when fcntl() fails
 
 17 Aug 2014 - v0.04
